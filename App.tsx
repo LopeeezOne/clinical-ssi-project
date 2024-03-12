@@ -1,20 +1,24 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+// shims
+import "@sinonjs/text-encoding";
+import "react-native-get-random-values";
+import "@ethersproject/shims";
+import "cross-fetch/polyfill";
+// ... shims
+
+import * as React from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import MainStackNavigator from "./src/navigation/MainStackNavigator";
+import { AuthProvider } from "./src/contexts/AuthProvider";
+import { ConnectionProvider } from "./src/contexts/ConnectionsProvider";
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <AuthProvider>
+      <ConnectionProvider>
+        <NavigationContainer>
+          <MainStackNavigator />
+        </NavigationContainer>
+      </ConnectionProvider>
+    </AuthProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
