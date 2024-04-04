@@ -121,11 +121,14 @@ const ForegroundTaskComponent: React.FC<ForegroundTaskScreenProps> = ({
 
   useEffect(() => {
     const myPeriodicTask = async (): Promise<void> => {
+      // Case for establish a new connection, a new DID has been created
       if (draftConnection !== undefined) {
         console.log("Possible connection created!");
         console.log("Counter: ", counter);
         checkNewMessages(draftConnection);
         counter++;
+        // If the connection is not established after to 4 executions, the connection is not created
+        // I should also remove the DID created since it is no longer usable
         if (counter == 4) {
           console.log("ERROR: Connection not created!");
           addDraftConnection(undefined);
@@ -133,9 +136,11 @@ const ForegroundTaskComponent: React.FC<ForegroundTaskScreenProps> = ({
           navigation.navigate("Connections");
           return;
         }
+      // Case when there is no active connection  
       } else if (connections.length === 0) {
         console.log("There is still no active connection!");
         return;
+      // Case when there is, at least, an active connection
       } else {
         console.log("Running periodic task");
         connections.forEach(async (connection) => {
