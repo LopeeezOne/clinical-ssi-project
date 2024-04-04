@@ -1,36 +1,63 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { NavigationProp, ParamListBase } from "@react-navigation/native";
+import { VerifiableCredential } from "@veramo/core";
+import React, { useState } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, Button } from "react-native";
+import { agent } from "./Agent";
 
 interface CredentialCardProps {
-  credential: CredentialCard;
+  credentialCard: CredentialCard;
   navigation: NavigationProp<ParamListBase>;
 }
 
 interface CredentialCard {
-  id: string;
-  title: string;
-  issuer: string;
-  issuedDate: string;
-  description?: string;
+  hash: string;
+  verifiableCredential: VerifiableCredential;
 }
 
-const CredentialCard: React.FC<CredentialCardProps> = ({ credential, navigation }) => {
+const CredentialCard: React.FC<CredentialCardProps> = ({ credentialCard }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
+  const verifyCredential = async () => {
+    const credential = credentialCard.verifiableCredential;
+    const result = await agent.verifyCredential({ credential });
+    alert("Credential verification result: " + JSON.stringify(result, null, 2));
+  };
+
   return (
-    <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)} style={styles.card}>
-      <Text style={styles.title}>{credential.title}</Text>
-      <Text>Issuer: {credential.issuer}</Text>
-      <Text>Issued Date: {credential.issuedDate}</Text>
-      {isExpanded && <Text>Description: {credential.description}</Text>}
+    <TouchableOpacity
+      onPress={() => setIsExpanded(!isExpanded)}
+      style={styles.card}
+    >
+      <Text style={styles.title}>
+        {credentialCard.verifiableCredential.credentialSubject?.id ?? "Default ID"}
+      </Text>
+      <Text>Type: {credentialCard.verifiableCredential.type}</Text>
+      <Text>Sent by: {credentialCard.verifiableCredential.credentialSubject?.alias ?? "No alias"}</Text>
+      <Text>Issued Date: {credentialCard.verifiableCredential.issuanceDate}</Text>
+      {isExpanded && (
+        <View>
+          <Text>
+            Description: {credentialCard.verifiableCredential.credentialSubject?.data ??
+              "Default Data"}
+          </Text>
+          <Text style={styles.text}>
+            Issuer: {typeof credentialCard.verifiableCredential.issuer === "string"
+              ? credentialCard.verifiableCredential.issuer
+              : credentialCard.verifiableCredential.issuer.id}
+          </Text>
+          <Button
+            title={"Verify Credential"}
+            onPress={() => verifyCredential()}
+          />
+        </View>
+      )}
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 8,
     padding: 16,
     marginBottom: 10,
@@ -44,8 +71,12 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   title: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
+  text: {
+    marginBottom: 10,
+  },
+
   // Additional styles as needed
 });
 

@@ -1,3 +1,3 @@
 export const mediator = {
-    did: "did:peer:2.Ez6LSrhEoioEs1osgydRrzrupL5fYG8uXSQNBC73WBJ7U3qfC.Vz6MkvLwuFNbMf3mnTUjJ46xwQ6oGFksuak33YGwnsbMkpA3s.SeyJpZCI6IiNtZXNzYWdpbmcxIiwidCI6ImRtIiwicyI6Imh0dHA6Ly8xOTIuMTY4LjE5OS4xNjI6MzAwMC9tZXNzYWdpbmcifQ",
+    did: "did:peer:2.Ez6LSbpQMUuadovoFMjs7q86LMXh216r6wc9e8uQCBH3dr6oY.Vz6MkgPnU8QXLKVfMSatYxRkydLTrRsfWcbnLaH3VUxkD6QzA.SeyJpZCI6IiNtZXNzYWdpbmcxIiwidCI6ImRtIiwicyI6Imh0dHA6Ly8xOTIuMTY4LjExMS4xNjI6MzAwMC9tZXNzYWdpbmcifQ",
 };

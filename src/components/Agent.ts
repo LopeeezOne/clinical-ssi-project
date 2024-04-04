@@ -1,6 +1,6 @@
 // imports:
 // Core interfaces
-import { createAgent, IAgentOptions, IDataStore, IDataStoreORM, IDIDManager, IEventListener, IKeyManager, IMessageHandler, IResolver, TAgent } from '@veramo/core'
+import { createAgent, IAgentOptions, IDIDManager, IKeyManager, IMessageHandler, IResolver, TAgent } from '@veramo/core'
 
 // Core identity manager plugin. This allows you to create and manage DIDs by orchestrating different DID provider packages.
 // This implements `IDIDManager`
@@ -8,7 +8,7 @@ import { DIDManager, MemoryDIDStore } from '@veramo/did-manager'
 
 // Core key manager plugin. DIDs use keys and this key manager is required to know how to work with them.
 // This implements `IKeyManager`
-import { KeyManager, MemoryKeyStore, MemoryPrivateKeyStore} from '@veramo/key-manager'
+import { KeyManager, MemoryKeyStore, MemoryPrivateKeyStore } from '@veramo/key-manager'
 
 // This plugin allows us to create and manage `did:key` DIDs. (used by DIDManager)
 import { getResolver as getDidPeerResolver, PeerDIDProvider } from '@veramo/did-provider-peer'
@@ -28,7 +28,7 @@ import { CredentialPlugin, ICredentialIssuer, ICredentialVerifier } from '@veram
 // TypeORM is installed with '@veramo/data-store'
 import { DataSource } from 'typeorm'
 
-import { CoordinateMediationV3RecipientMessageHandler, DIDComm, DIDCommHttpTransport, DIDCommMessageHandler, IDIDComm, PickupRecipientMessageHandler } from '@veramo/did-comm'
+import { DIDComm, DIDCommMessageHandler, IDIDComm, PickupRecipientMessageHandler } from '@veramo/did-comm'
 
 import { MessageHandler } from '@veramo/message-handler'
 
@@ -59,13 +59,18 @@ function createUserAgent(options?: IAgentOptions): TAgent<UserAgentPlugins> {
         ...getDidPeerResolver(),
       }),
       new KeyManager({
-        store: new MemoryKeyStore(),
+        // store: new MemoryKeyStore(),
+        // kms: {
+        //   [defaultKms]: new KeyManagementSystem(new MemoryPrivateKeyStore()),
+        // },
+        store: new KeyStore(dbConnection),
         kms: {
-          [defaultKms]: new KeyManagementSystem(new MemoryPrivateKeyStore()),
+          [defaultKms]: new KeyManagementSystem(new PrivateKeyStore(dbConnection, new SecretBox(DB_ENCRYPTION_KEY))),
         },
       }),
       new DIDManager({
-        store: new MemoryDIDStore(),
+        // store: new MemoryDIDStore(),
+        store: new DIDStore(dbConnection),
         defaultProvider: 'did:peer',
         providers: {
           'did:peer': new PeerDIDProvider({ defaultKms }),
@@ -82,6 +87,8 @@ function createUserAgent(options?: IAgentOptions): TAgent<UserAgentPlugins> {
         ],
       }),
       new DIDComm(),
+      new DataStore(dbConnection),
+     new DataStoreORM(dbConnection),
     ],
   })
 }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Button,
   SafeAreaView,
@@ -7,12 +7,16 @@ import {
   TextInput,
   View,
   StyleSheet,
-  FlatList,
-  VirtualizedList,
 } from "react-native";
 import { NavigationProp, ParamListBase } from "@react-navigation/native";
 import { agent } from "../components/Agent";
-import { IMessage } from "@veramo/core";
+import {
+  IIdentifier,
+  IMessage,
+  IService,
+  IVerifyResult,
+  VerifiableCredential,
+} from "@veramo/core";
 import {
   CoordinateMediation,
   UpdateAction,
@@ -20,19 +24,85 @@ import {
   createV3MediateRequestMessage,
   createV3RecipientUpdateMessage,
 } from "@veramo/did-comm";
-import { useConnections } from "../contexts/ConnectionsProvider";
-import ConnectionCard from "../components/ConnectionCard";
 import { mediator } from "../constants/constants";
+import { useAuth } from "../contexts/AuthProvider";
 
-interface NotificationsScreenProps {
+interface UtilitiesScreenProps {
   navigation: NavigationProp<ParamListBase>;
 }
 
-const NotificationsScreen: React.FC<NotificationsScreenProps> = ({
-  navigation,
-}) => {
+const UtilitiesScreen: React.FC<UtilitiesScreenProps> = ({ navigation }) => {
   const [message, setMessage] = useState<IMessage | undefined>();
   const [input, setInput] = useState<string>("");
+  const { user } = useAuth();
+  const [identifiers, setIdentifiers] = useState<IIdentifier[]>([]);
+  const [credential, setCredential] = useState<
+    VerifiableCredential | undefined
+  >();
+  const [verificationResult, setVerificationResult] = useState<
+    IVerifyResult | undefined
+  >();
+
+  const verifyCredential = async () => {
+    if (credential) {
+      const result = await agent.verifyCredential({ credential });
+      setVerificationResult(result);
+    }
+  };
+
+  const createIdentifier = async () => {
+    const service: IService = {
+      id: "msg1",
+      type: "DIDCommMessaging",
+      serviceEndpoint: mediator.did,
+    };
+
+    const _id = await agent.didManagerCreate({
+      provider: "did:peer",
+      alias: user.username,
+      options: { num_algo: 2, service: service },
+    });
+
+    setIdentifiers((s) => s.concat([_id]));
+  };
+
+  const handleRemoveId = async (did: string) => {
+    setIdentifiers(identifiers.filter((item) => item.did !== did));
+    agent.didManagerDelete({
+      did: did,
+    });
+  };
+
+  const createCredential = async () => {
+    if (identifiers[0].did) {
+      const verifiableCredential = await agent.createVerifiableCredential({
+        credential: {
+          issuer: { id: identifiers[0].did },
+          issuanceDate: new Date().toISOString(),
+          credentialSubject: {
+            id: "How are you",
+            you: "Rock",
+          },
+        },
+        save: false,
+        proofFormat: "jwt",
+      });
+
+      setCredential(verifiableCredential);
+    }
+  };
+
+  // Check for existing identifers on load and set them to state
+  useEffect(() => {
+    const getIdentifiers = async () => {
+      const _ids = await agent.didManagerFind();
+      setIdentifiers(_ids);
+
+      console.log("_ids:", _ids);
+    };
+
+    getIdentifiers();
+  }, []);
 
   const retrieveDID = async (alias: string) => {
     return await agent.didManagerFind({
@@ -100,7 +170,7 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({
         issuanceDate: new Date().toISOString(),
         credentialSubject: {
           id: "medical information",
-          data: input, 
+          data: input,
         },
       },
       save: false,
@@ -182,14 +252,54 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({
   return (
     <SafeAreaView>
       <ScrollView>
+        <View style={{ padding: 20, paddingTop: 50 }}>
+          <Text style={{ fontSize: 30, fontWeight: "bold" }}>Identifiers</Text>
+          <Button
+            onPress={() => createIdentifier()}
+            title={"Create Identifier"}
+          />
+          <View style={{ marginBottom: 50, marginTop: 20 }}>
+            {identifiers && identifiers.length > 0 ? (
+              identifiers.map((id: IIdentifier) => (
+                <View key={id.did}>
+                  <Button
+                    title={id.did}
+                    onPress={() => handleRemoveId(id.did)}
+                  />
+                </View>
+              ))
+            ) : (
+              <Text>No identifiers created yet</Text>
+            )}
+          </View>
+          <View style={{ padding: 20 }}>
+            <Button
+              title={"Create Credential"}
+              disabled={!identifiers || identifiers.length === 0}
+              onPress={() => createCredential()}
+            />
+            <Text style={{ fontSize: 10 }}>
+              {JSON.stringify(credential, null, 2)}
+            </Text>
+          </View>
+        </View>
+        <View style={{ padding: 20 }}>
+          <Button
+            title={"Verify Credential"}
+            onPress={() => verifyCredential()}
+            disabled={!credential}
+          />
+          <Text style={{ fontSize: 10 }}>
+            {JSON.stringify(verificationResult, null, 2)}
+          </Text>
+        </View>
         <View style={{ padding: 20 }}>
           <Text style={{ fontSize: 30, fontWeight: "bold" }}>
             Request Mediation
           </Text>
           <Button onPress={() => requestMediation()} title={"Start!"} />
         </View>
-        <View style={styles.container}>
-    </View>
+        <View style={styles.container}></View>
         <View style={{ padding: 20 }}>
           <Text style={{ fontSize: 30, fontWeight: "bold" }}>Send Message</Text>
           <Button onPress={() => sendMessage()} title={"Let's go!"} />
@@ -226,6 +336,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  flatlist: {
+    padding: 20,
+  },
   input: {
     height: 40,
     margin: 12,
@@ -237,7 +350,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export default NotificationsScreen;
+export default UtilitiesScreen;
 
 // const addService = async (service: IService, did: IIdentifier) => {
 //   const result = await agent.didManagerAddService({

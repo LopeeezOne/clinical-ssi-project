@@ -1,20 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, FlatList, StyleSheet } from "react-native";
 import CredentialCard from "../components/CredentialCard"; // Adjust the import path as necessary
 import { NavigationProp, ParamListBase } from "@react-navigation/native";
-
-// Sample data
-const credentials: CredentialCard[] = [
-  {
-    id: "1",
-    title: "Medical License",
-    issuer: "Medical Board",
-    issuedDate: "2020-01-01",
-    description:
-      "This credential verifies the doctor is licensed to practice medicine.",
-  },
-  // Add more credentials as needed
-];
+import { agent } from "../components/Agent";
+import { VerifiableCredential } from "@veramo/core";
 
 interface CredentialsScreenProps {
   navigation: NavigationProp<ParamListBase>;
@@ -23,13 +12,31 @@ interface CredentialsScreenProps {
 const CredentialsScreen: React.FC<CredentialsScreenProps> = ({
   navigation,
 }) => {
+  const [credentials, setCredentials] = useState<CredentialCard[]>([]);
+
+  useEffect(() => {
+    const searchCredentials = async () => {
+      const newCredentials = await agent.dataStoreORMGetVerifiableCredentials({
+        order: [{ column: 'issuanceDate', direction: 'DESC' }]
+      });
+      
+      if (newCredentials.length === 0){
+        console.log("There is no new credentials");
+      } else if (newCredentials.length !== credentials.length){
+        setCredentials(newCredentials);
+        console.log("Credentials retrieved: ", newCredentials);
+      }
+    }
+    searchCredentials();// Fetch connections when the component mounts
+  }, [credentials]);
+
   return (
     <View style={styles.container}>
       <FlatList
         data={credentials}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.verifiableCredential.issuanceDate}
         renderItem={({ item }) => (
-          <CredentialCard credential={item} navigation={navigation} />
+          <CredentialCard credentialCard={item} navigation={navigation} />
         )}
       />
     </View>

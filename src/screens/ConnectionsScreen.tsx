@@ -1,27 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import {
   SafeAreaView,
   ScrollView,
   View,
   StyleSheet,
   Text,
-  Button,
   TouchableOpacity,
-  Modal,
-  TextInput,
+  FlatList,
 } from "react-native";
-import { NavigationProp, ParamListBase, useIsFocused } from "@react-navigation/native";
-import { agent } from "../components/Agent";
-import { IService } from "@veramo/core";
-import { useAuth } from "../contexts/AuthProvider";
-import QRCode from "react-native-qrcode-svg";
-import {
-  CoordinateMediation,
-  UpdateAction,
-  createV3MediateRequestMessage,
-  createV3RecipientUpdateMessage,
-} from "@veramo/did-comm";
-import { mediator } from "../constants/constants";
+import { NavigationProp, ParamListBase } from "@react-navigation/native";
+import ConnectionCard from "../components/ConnectionCard";
+import { useConnections } from "../contexts/ConnectionsProvider";
 
 interface ConnectionsScreenProps {
   navigation: NavigationProp<ParamListBase>;
@@ -30,165 +19,44 @@ interface ConnectionsScreenProps {
 const ConnectionsScreen: React.FC<ConnectionsScreenProps> = ({
   navigation,
 }) => {
-  const [qrContent, setQrContent] = useState<string | null>(null);
-  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
-  const [alias_1, setAlias_1] = useState<string>("");
-  const [alias_2, setAlias_2] = useState<string>("");
-
-  const { user } = useAuth();
-
-  // Function to generate QR code content
-  const generateQRContent = async (alias: string) => {
-    if (alias === "") {
-      alert("Alias not indicated!");
-      return; // Early return to stop the function execution
-    }
-    const service: IService = {
-      id: "msg1",
-      type: "DIDCommMessaging",
-      serviceEndpoint: mediator.did,
-    };
-
-    const recipient = await agent.didManagerCreate({
-      provider: "did:peer",
-      alias: alias,
-      options: { num_algo: 2, service: service },
-    });
-
-    const content = {
-      alias: alias,
-      did: recipient.did,
-    };
-
-    // Request Mediation for this did created
-    const request = createV3MediateRequestMessage(recipient.did, mediator.did);
-    const packedRequest = await agent.packDIDCommMessage({
-      packing: "anoncrypt",
-      message: request,
-    });
-    const mediationResponse = await agent.sendDIDCommMessage({
-      packedMessage: packedRequest,
-      recipientDidUrl: mediator.did,
-      messageId: request.id,
-    });
-    if (
-      mediationResponse.returnMessage?.type !==
-      CoordinateMediation.MEDIATE_GRANT
-    ) {
-      throw new Error("mediation not granted");
-    }
-
-    // Update the status in the mediator
-    const update = createV3RecipientUpdateMessage(recipient.did, mediator.did, [
-      {
-        recipient_did: recipient.did,
-        action: UpdateAction.ADD,
-      },
-    ]);
-    const packedUpdate = await agent.packDIDCommMessage({
-      packing: "anoncrypt",
-      message: update,
-    });
-    const updateResponse = await agent.sendDIDCommMessage({
-      packedMessage: packedUpdate,
-      recipientDidUrl: mediator.did,
-      messageId: update.id,
-    });
-    if (
-      updateResponse.returnMessage?.type !==
-        CoordinateMediation.RECIPIENT_UPDATE_RESPONSE ||
-      (updateResponse.returnMessage?.data as any)?.updates[0].result !==
-        "success"
-    ) {
-      throw new Error("mediation update failed");
-    }
-    console.log("Mediation produced correctly!");
-
-    // Update state with the new QR code content
-    setQrContent(JSON.stringify(content));
-  };
-
-  const toggleModal = () => {
-    setIsModalVisible(!isModalVisible);
-  };
-
+  const { connections, retrieveConnections } = useConnections();
+  
   const handleNewConnection = () => {
-    navigation.navigate('Camera');
+    navigation.navigate("NewConnection");
   };
 
-  // useEffect(() => {
-  //   if (isFocused) {
-  //     // Reset your state here
-  //     setAlias_1("");
-  //     setAlias_2("");
-  //   }
-  // }, [isFocused]);
+  useEffect(() => {
+    retrieveConnections(); // Fetch connections when the component mounts
+  }, [retrieveConnections]);
 
   return (
-    <SafeAreaView>
-      <ScrollView>
+    <View style={styles.outerContainer}>
+      {/* Outer container for positioning the floating button */}
+      <SafeAreaView style={{ flex: 1 }}>
         <View style={styles.container}>
-          <Text style={{ marginBottom: 7, fontSize: 25, fontWeight: "bold" }}>
-            Generate connection
-          </Text>
-          <TextInput
-            style={styles.input}
-            value={alias_1}
-            onChangeText={(text) => setAlias_1(text)}
-            placeholder="Enter en alias for the connection..."
+          <FlatList
+            data={connections}
+            keyExtractor={(item) => item.connection_alias}
+            renderItem={({ item }) => (
+              <ConnectionCard connection={item} navigation={navigation} />
+            )}
           />
-          <Button
-            title="Start New Connection"
-            onPress={() => generateQRContent(alias_1)}
-          />
-          {qrContent && (
-            <TouchableOpacity onPress={toggleModal}>
-              <View style={styles.qrCodeContainer}>
-                <QRCode value={qrContent} size={300} />
-              </View>
-            </TouchableOpacity>
-          )}
-          <Modal
-            animationType="slide"
-            transparent={true}
-            visible={isModalVisible}
-            onRequestClose={toggleModal}
-          >
-            <View style={styles.modalView}>
-              <Text style={styles.modalText}>QR Code Content:</Text>
-              <Text>{qrContent}</Text>
-              <Button title="Close" onPress={toggleModal} />
-            </View>
-          </Modal>
-          <View>
-            <Text
-              style={{
-                marginBottom: 10,
-                marginTop: 40,
-                fontSize: 25,
-                fontWeight: "bold",
-              }}
-            >
-              Scan connection
-            </Text>
-            <TextInput
-              style={styles.input}
-              value={alias_2}
-              onChangeText={(text) => setAlias_2(text)}
-              placeholder="Enter en alias for the connection..."
-            />
-            <Button
-              title="Scan New Connection"
-              onPress={() => handleNewConnection()}
-            />
-          </View>
         </View>
-      </ScrollView>
-    </SafeAreaView>
+      </SafeAreaView>
+      <TouchableOpacity
+        onPress={() => handleNewConnection()}
+        style={styles.floatingButton}
+      >
+        <Text style={styles.buttonText}>+</Text>
+      </TouchableOpacity>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  outerContainer: {
+    flex: 1, // Ensure this container fills the screen
+  },
   container: {
     flex: 1,
     flexDirection: "column",
@@ -196,36 +64,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 20,
   },
-  qrCodeContainer: {
-    marginTop: 20,
-  },
-  input: {
-    height: 40,
-    margin: 12,
-    borderWidth: 1,
-    padding: 10,
-    borderColor: "gray",
-    marginBottom: 20,
-    paddingHorizontal: 10,
-  },
-  modalView: {
-    margin: 20,
-    backgroundColor: "white",
-    borderRadius: 20,
-    padding: 35,
+  floatingButton: {
+    backgroundColor: "tomato", // Use your desired color
+    width: 56, // Adjust size as necessary
+    height: 56, // Adjust size as necessary
+    borderRadius: 28, // Half of the width/height to make it circular
+    justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    position: "absolute",
+    bottom: 20, // Distance from the bottom
+    right: 20, // Distance from the right
+    elevation: 4, // Shadow for Android (optional)
+    shadowColor: "#000", // Shadow for iOS
+    shadowOpacity: 0.3, // Shadow for iOS
+    shadowOffset: { width: 0, height: 2 }, // Shadow for iOS
   },
-  modalText: {
-    marginBottom: 15,
-    textAlign: "center",
+  buttonText: {
+    color: "#fff",
+    fontSize: 24,
   },
 });
 

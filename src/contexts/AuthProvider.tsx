@@ -1,14 +1,12 @@
 import { createContext, ReactNode, useContext, useState, FunctionComponent } from 'react';
 
-// Define the shape of the context state
 interface AuthState {
-  token: string | null;
+  token: string | null; // For now, I do not use the token
   username: string;
   password: string | null,
   role: string | null,
 }
 
-// Define the shape of the context itself
 interface AuthContextType {
   user: AuthState;
   login: (username: string, token: string, password: string, role: string) => void;

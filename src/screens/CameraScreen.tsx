@@ -5,14 +5,6 @@ import { CameraView } from "expo-camera/next";
 import { useConnections } from "../contexts/ConnectionsProvider";
 import { NavigationProp, ParamListBase } from "@react-navigation/native";
 import { agent } from "../components/Agent";
-import { IService } from "@veramo/core";
-import { mediator } from "../constants/constants";
-import {
-  CoordinateMediation,
-  UpdateAction,
-  createV3MediateRequestMessage,
-  createV3RecipientUpdateMessage,
-} from "@veramo/did-comm";
 
 interface CameraScreenProps {
   navigation: NavigationProp<ParamListBase>;
@@ -22,26 +14,7 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ navigation }) => {
   // const [permissions, requestPermission] = useCameraPermissions();
   const [hasCameraPermission, setHasCameraPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
-  const { addConnection } = useConnections();
-
-  // // Function to manually request permission
-  // const handleRequestPermission = async () => {
-  //   console.log("Im here");
-  //   const {status} = await Camera.requestCameraPermissionsAsync();
-  //   console.log(JSON.stringify(status));
-  //   await requestPermission();
-  // };
-  // // Early return to request permissions if not granted yet
-  // if (!permissions || permissions.status !== "granted") {
-  //   return (
-  //     <View style={styles.container}>
-  //       <Text style={{ textAlign: "center" }}>
-  //         We need your permission to show the camera
-  //       </Text>
-  //       <Button onPress={handleRequestPermission} title="Grant permission" />
-  //     </View>
-  //   );
-  // }
+  const { draftConnection, addConnection, addDraftConnection } = useConnections();
 
   useEffect(() => {
     (async () => {
@@ -60,73 +33,33 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ navigation }) => {
 
     const scannedData = JSON.parse(data);
 
-    const service: IService = {
-      id: "msg1",
-      type: "DIDCommMessaging",
-      serviceEndpoint: mediator.did,
-    };
+    if (draftConnection !== undefined) {
+      draftConnection.did_received = scannedData.did;
+      await addConnection(draftConnection);
+      alert("New connection established! " + data);
+      
+      const msg = {
+        type: "https://didcomm.org/basicmessage/2.0/message",
+        from: draftConnection.did_created,
+        to: draftConnection.did_received, // Bob doesn't care that alice is using a mediator
+        id: "invitation-request",
+        body: "Invitation sent!",
+      };
+      const packed = await agent.packDIDCommMessage({
+        packing: "anoncrypt",
+        message: msg,
+      });
+      const result = await agent.sendDIDCommMessage({
+        packedMessage: packed,
+        recipientDidUrl: draftConnection.did_received,
+        messageId: msg.id,
+      });
+  
+      console.log(result);
 
-    const recipient = await agent.didManagerCreate({
-      provider: "did:peer",
-      alias: scannedData.alias,
-      options: { num_algo: 2, service: service },
-    });
-
-    // Request Mediation for this did created
-    const request = createV3MediateRequestMessage(recipient.did, mediator.did);
-    const packedRequest = await agent.packDIDCommMessage({
-      packing: "anoncrypt",
-      message: request,
-    });
-    const mediationResponse = await agent.sendDIDCommMessage({
-      packedMessage: packedRequest,
-      recipientDidUrl: mediator.did,
-      messageId: request.id,
-    });
-    if (
-      mediationResponse.returnMessage?.type !==
-      CoordinateMediation.MEDIATE_GRANT
-    ) {
-      throw new Error("mediation not granted");
+      addDraftConnection(undefined);
+      navigation.navigate("Connections");
     }
-
-    // Update the status in the mediator
-    const update = createV3RecipientUpdateMessage(recipient.did, mediator.did, [
-      {
-        recipient_did: recipient.did,
-        action: UpdateAction.ADD,
-      },
-    ]);
-    const packedUpdate = await agent.packDIDCommMessage({
-      packing: "anoncrypt",
-      message: update,
-    });
-    const updateResponse = await agent.sendDIDCommMessage({
-      packedMessage: packedUpdate,
-      recipientDidUrl: mediator.did,
-      messageId: update.id,
-    });
-    if (
-      updateResponse.returnMessage?.type !==
-        CoordinateMediation.RECIPIENT_UPDATE_RESPONSE ||
-      (updateResponse.returnMessage?.data as any)?.updates[0].result !==
-        "success"
-    ) {
-      throw new Error("mediation update failed");
-    }
-    console.log("Mediation produced correctly!");
-
-    //console.log(scannedData.alias, recipient.did, scannedData.did, new Date());
-    addConnection( {
-      alias_received: scannedData.alias,
-      did_created: recipient.did,
-      did_received: scannedData.did,
-      createdAt: new Date(),
-    } );
-
-    alert("New connection established! " + data);
-
-    navigation.navigate("Notifications");
   };
 
   return (
@@ -175,3 +108,22 @@ const styles = StyleSheet.create({
 });
 
 export default CameraScreen;
+
+  // // Function to manually request permission
+  // const handleRequestPermission = async () => {
+  //   console.log("Im here");
+  //   const {status} = await Camera.requestCameraPermissionsAsync();
+  //   console.log(JSON.stringify(status));
+  //   await requestPermission();
+  // };
+  // // Early return to request permissions if not granted yet
+  // if (!permissions || permissions.status !== "granted") {
+  //   return (
+  //     <View style={styles.container}>
+  //       <Text style={{ textAlign: "center" }}>
+  //         We need your permission to show the camera
+  //       </Text>
+  //       <Button onPress={handleRequestPermission} title="Grant permission" />
+  //     </View>
+  //   );
+  // }

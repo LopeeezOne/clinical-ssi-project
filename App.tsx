@@ -10,15 +10,18 @@ import { NavigationContainer } from "@react-navigation/native";
 import MainStackNavigator from "./src/navigation/MainStackNavigator";
 import { AuthProvider } from "./src/contexts/AuthProvider";
 import { ConnectionProvider } from "./src/contexts/ConnectionsProvider";
+import ForegroundTaskComponent from "./src/components/ForegroundTask";
 
 export default function App() {
   return (
+    <ConnectionProvider>
     <AuthProvider>
-      <ConnectionProvider>
+
         <NavigationContainer>
           <MainStackNavigator />
         </NavigationContainer>
+        </AuthProvider>
       </ConnectionProvider>
-    </AuthProvider>
+   
   );
 }

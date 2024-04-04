@@ -1,3 +1,4 @@
+// This code is a test which does not work.
 import { MigrationInterface, QueryRunner, Table } from "typeorm";
 
 export class CreateConnectionsTable1612345678901 implements MigrationInterface {

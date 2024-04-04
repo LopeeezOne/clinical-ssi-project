@@ -10,40 +10,83 @@ import {
 import { NavigationProp, ParamListBase } from "@react-navigation/native";
 import RNPickerSelect from "react-native-picker-select";
 import { useAuth } from "../contexts/AuthProvider";
-import { useConnections } from "../contexts/ConnectionsProvider";
+import { mediator } from "../constants/constants";
+import { IService } from "@veramo/core";
+import { agent } from "../components/Agent";
+import {
+  CoordinateMediation,
+  createV3MediateRequestMessage,
+} from "@veramo/did-comm";
 
 // Definición de los tipos para los estados
-interface LoginState {
+interface SignUpState {
   username: string;
   password: string;
+  repeatPassword: string;
   role: string;
 }
 
 // Definir las props esperadas por HomeScreen
-interface LoginScreenProps {
+interface SignUpScreenProps {
   navigation: NavigationProp<ParamListBase>;
 }
 
-const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
+const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
   const { login } = useAuth();
 
-  const [credentials, setCredentials] = useState<LoginState>({
+  const [credentials, setCredentials] = useState<SignUpState>({
     username: "",
     password: "",
+    repeatPassword: "",
     role: "",
   });
 
-  const handleLogin = () => {
-    // Aquí puedes agregar la lógica para verificar las credenciales
-    // Por ejemplo, haciendo una petición a tu servidor de backend
+  // const handleSignUp to handle the SignUp logic.
+  // The function will check if the fields are empty and if not, it will create a did, send a message, alert the user and navigate to the Tabs screen.
+  const handleSignUp = async () => {
     if (
       credentials.username === "" ||
       credentials.password === "" ||
+      credentials.repeatPassword === "" ||
       credentials.role === ""
     ) {
       Alert.alert("ERROR", `The fields can not be empty`);
+    } else if (credentials.password !== credentials.repeatPassword) {
+      Alert.alert("ERROR", `Passwords do not match`);
     } else {
-      Alert.alert("Login Attempt", `Successful login!`);
+      Alert.alert("SignUp Attempt", `Successful SignUp!`);
+      const service: IService = {
+        id: "msg1",
+        type: "DIDCommMessaging",
+        serviceEndpoint: mediator.did,
+      };
+
+      const recipient = await agent.didManagerCreate({
+        provider: "did:peer",
+        alias: credentials.username,
+        options: { num_algo: 2, service: service },
+      });
+
+      const request = createV3MediateRequestMessage(
+        recipient.did,
+        mediator.did
+      );
+      const packedRequest = await agent.packDIDCommMessage({
+        packing: "anoncrypt",
+        message: request,
+      });
+      const mediationResponse = await agent.sendDIDCommMessage({
+        packedMessage: packedRequest,
+        recipientDidUrl: mediator.did,
+        messageId: request.id,
+      });
+      if (
+        mediationResponse.returnMessage?.type !==
+        CoordinateMediation.MEDIATE_GRANT
+      ) {
+        throw new Error("mediation not granted");
+      }
+
       login(
         credentials.username,
         "success",
@@ -82,12 +125,16 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           setCredentials({ ...credentials, password: text })
         }
       />
-      <Pressable style={styles.button} onPress={() => handleLogin()}>
-        <Text style={styles.text}>Login</Text>
-      </Pressable>
-      
-      <Text style={styles.textSignUp}>Don't have an account?</Text>
-      <Pressable style={styles.buttonSignUp} onPress={() => navigation.navigate("SignUp")}>
+      <TextInput
+        style={styles.input}
+        placeholder="Repeat password"
+        secureTextEntry
+        value={credentials.repeatPassword}
+        onChangeText={(text) =>
+          setCredentials({ ...credentials, repeatPassword: text })
+        }
+      />
+      <Pressable style={styles.button} onPress={() => handleSignUp()}>
         <Text style={styles.text}>Sign up</Text>
       </Pressable>
     </View>
@@ -123,31 +170,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     letterSpacing: 0.25,
     color: "white",
-  }, 
-  textSignUp: {
-    fontSize: 16,
-    lineHeight: 21,
-    fontWeight: "bold",
-    letterSpacing: 0.25,
-    color: "black",
-    marginTop: 30,
-  },
-  buttonSignUp: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    borderRadius: 10,
-    elevation: 3,
-    backgroundColor: "red",
-    marginTop: 10,
-  },
-  signUp: {
-    color: "red",
-    fontSize: 16,
-    lineHeight: 21,
-    marginTop: 5,
   },
 });
 
-export default LoginScreen;
+export default SignUpScreen;
