@@ -1,0 +1,3 @@
+# Clinical SSI project
+
+This repository contains the functionality to deploy a Proof of Concept of a SSI solution for the clinical domain. The edge agent contains the logic of a mobile application which allows the creation and managing of DIDs and VCs, as well as connections between different edge agents. In contrast, the cloud agent implements the mediator functionality for the communication between the different agents, and the connection with the Blockchain platform, acting as Verifiable Data Registry.
