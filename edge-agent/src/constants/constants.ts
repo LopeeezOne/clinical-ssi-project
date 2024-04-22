@@ -1,0 +1,3 @@
+export const mediator = {
+    did: "did:peer:2.Ez6LSmaWRBDnwfjsg4cmo4MtHKSFPPoFHjSs4ba2LxQAwnPTo.Vz6Mkv143RWtvakZXj6m6AzKZtpPMnuPWMw34uYN2PEotqymJ.SeyJpZCI6IiNtZXNzYWdpbmcxIiwidCI6ImRtIiwicyI6Imh0dHA6Ly8xOTIuMTY4LjEyMS4xNjI6MzAwMC9tZXNzYWdpbmcifQ",
+};

@@ -1,0 +1,115 @@
+import { NavigationProp, ParamListBase } from "@react-navigation/native";
+import React, { useState } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, Button, TextInput } from "react-native";
+import { Connection } from "../model/Connection";
+import { agent } from "./Agent";
+import { useAuth } from "../contexts/AuthProvider";
+// import { format } from 'date-fns';
+// const readableFormat = format(date, "MMMM do, yyyy 'at' h:mm a");
+
+interface ConnectionCardProps {
+  connection: Connection;
+  navigation: NavigationProp<ParamListBase>;
+}
+
+const ConnectionCard: React.FC<ConnectionCardProps> = ({ connection }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [input, setInput] = useState("");
+
+  const { user } = useAuth();
+
+  const createCredential = async () => {
+    const sender = connection.did_created;
+    const receiver = connection.did_received;
+    const verifiableCredential = await agent.createVerifiableCredential({ // did:key / did:web / did:ethr / did:indy
+      credential: {
+        issuer: { id: sender },
+        '@context': ['https://www.w3.org/2018/credentials/v1'],
+        issuanceDate: new Date().toISOString(),
+        credentialSubject: {
+          id: "Medical prescription",
+          data: input,
+          alias: user.username,
+        },
+      },
+      // I need to decide if I want to save the credential for the creator. Probably yes, because the creator should be able to revoke it.
+      save: false,
+      proofFormat: "jwt",
+    });
+
+    const msg = {
+      type: "https://didcomm.org/issue-credential",
+      from: sender,
+      to: receiver,
+      id: "1",
+      body: verifiableCredential,
+    };
+    const packed = await agent.packDIDCommMessage({
+      packing: "anoncrypt",
+      message: msg,
+    });
+    const result = await agent.sendDIDCommMessage({
+      packedMessage: packed,
+      recipientDidUrl: receiver,
+      messageId: msg.id,
+    });
+
+    alert("Verifiable Credential Sent!");
+  };
+
+  return (
+    <TouchableOpacity
+      onPress={() => setIsExpanded(!isExpanded)}
+      style={styles.card}
+    >
+      <Text style={styles.title}>{connection.connection_alias}</Text>
+      <Text>Creation Date: {JSON.stringify(connection.createdAt)}</Text>
+      {isExpanded && (
+        <View>
+          <TextInput
+          style={styles.input}
+          value={input}
+          onChangeText={(text) => setInput(text)}
+          placeholder="Enter text here..."
+          />
+          <Button
+            title={"Create Credential"}
+            onPress={() => createCredential()}
+          />
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+};
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: "white",
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 10,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.23,
+    shadowRadius: 2.62,
+    elevation: 4,
+  },
+  title: {
+    fontWeight: "bold",
+  },
+  input: {
+    height: 40,
+    margin: 12,
+    borderWidth: 1,
+    padding: 10,
+    borderColor: "gray",
+    marginBottom: 20,
+    paddingHorizontal: 10,
+  },
+  // Additional styles as needed
+});
+
+export default ConnectionCard;
