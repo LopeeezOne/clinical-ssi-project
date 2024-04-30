@@ -3,7 +3,6 @@ import { Button, Text, View } from "react-native";
 import { NavigationProp, ParamListBase } from "@react-navigation/native";
 import { useAuth } from "../contexts/AuthProvider";
 
-// Definir las props esperadas por HomeScreen
 interface ProfileScreenProps {
   navigation: NavigationProp<ParamListBase>;
 }

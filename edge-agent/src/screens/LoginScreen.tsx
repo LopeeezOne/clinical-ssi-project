@@ -1,93 +1,80 @@
+import { NavigationProp, ParamListBase } from "@react-navigation/native";
 import React, { useState } from "react";
 import {
   View,
   TextInput,
-  Text,
+  Button,
   StyleSheet,
-  Alert,
   Pressable,
+  Text,
 } from "react-native";
-import { NavigationProp, ParamListBase } from "@react-navigation/native";
-import RNPickerSelect from "react-native-picker-select";
+import { mediator } from "../constants/constants";
 import { useAuth } from "../contexts/AuthProvider";
-import { useConnections } from "../contexts/ConnectionsProvider";
 
-// Definición de los tipos para los estados
-interface LoginState {
-  username: string;
-  password: string;
-  role: string;
-}
-
-// Definir las props esperadas por HomeScreen
 interface LoginScreenProps {
   navigation: NavigationProp<ParamListBase>;
 }
 
 const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
+  const [alias, setAlias] = useState("");
+  const [pin, setPin] = useState("");
   const { login } = useAuth();
 
-  const [credentials, setCredentials] = useState<LoginState>({
-    username: "",
-    password: "",
-    role: "",
-  });
-
   const handleLogin = () => {
-    // Aquí puedes agregar la lógica para verificar las credenciales
-    // Por ejemplo, haciendo una petición a tu servidor de backend
-    if (
-      credentials.username === "" ||
-      credentials.password === "" ||
-      credentials.role === ""
-    ) {
-      Alert.alert("ERROR", `The fields can not be empty`);
-    } else {
-      Alert.alert("Login Attempt", `Successful login!`);
-      login(
-        credentials.username,
-        "success",
-        credentials.password,
-        credentials.role
-      );
-      navigation.navigate("Tabs");
-    }
+    // send the pin to the server
+    fetch(`http://${mediator.ip}:3000/auth`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ alias, pin }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data);
+        if (data.status === "success") {
+          navigation.navigate("Tabs");
+          login(
+            alias,
+            "success",
+            pin,
+            ""
+          );
+        } else {
+          alert("Invalid PIN");
+        }
+      })
+      .catch((error) => {
+        // handle any errors
+        console.error(error);
+      });
   };
 
   return (
     <View style={styles.container}>
-      <RNPickerSelect
-        value={credentials.role}
-        onValueChange={(role) => setCredentials({ ...credentials, role: role })}
-        items={[
-          { label: "Patient", value: "patient" },
-          { label: "Doctor", value: "doctor" },
-          { label: "Laboratory", value: "laboratory" },
-        ]}
+      <TextInput
+        style={styles.input}
+        onChangeText={setAlias}
+        value={alias}
+        placeholder="Enter your Alias"
       />
       <TextInput
         style={styles.input}
-        placeholder="Username"
-        value={credentials.username}
-        onChangeText={(text) =>
-          setCredentials({ ...credentials, username: text })
-        }
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
+        onChangeText={setPin}
+        value={pin}
+        placeholder="Enter your PIN"
+        keyboardType="numeric"
         secureTextEntry
-        value={credentials.password}
-        onChangeText={(text) =>
-          setCredentials({ ...credentials, password: text })
-        }
       />
       <Pressable style={styles.button} onPress={() => handleLogin()}>
         <Text style={styles.text}>Login</Text>
       </Pressable>
-      
+
       <Text style={styles.textSignUp}>Don't have an account?</Text>
-      <Pressable style={styles.buttonSignUp} onPress={() => navigation.navigate("SignUp")}>
+      <Pressable
+        style={styles.buttonSignUp}
+        onPress={() => navigation.navigate("SignUp")}
+      >
         <Text style={styles.text}>Sign up</Text>
       </Pressable>
     </View>
@@ -98,7 +85,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
-    // alignItems: "center",
     padding: 25,
   },
   input: {
@@ -123,7 +109,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     letterSpacing: 0.25,
     color: "white",
-  }, 
+  },
   textSignUp: {
     fontSize: 16,
     lineHeight: 21,
@@ -141,12 +127,6 @@ const styles = StyleSheet.create({
     elevation: 3,
     backgroundColor: "red",
     marginTop: 10,
-  },
-  signUp: {
-    color: "red",
-    fontSize: 16,
-    lineHeight: 21,
-    marginTop: 5,
   },
 });
 

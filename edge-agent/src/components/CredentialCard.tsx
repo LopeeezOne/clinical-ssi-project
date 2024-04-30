@@ -10,6 +10,9 @@ import {
   Pressable,
 } from "react-native";
 import { agent } from "./Agent";
+import { useCredentials } from "../contexts/CredentialsProvider";
+import { mediator } from "../constants/constants";
+import { useAuth } from "../contexts/AuthProvider";
 
 interface CredentialCardProps {
   credentialCard: CredentialCard;
@@ -23,18 +26,39 @@ interface CredentialCard {
 
 const CredentialCard: React.FC<CredentialCardProps> = ({ credentialCard }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const { removeCredential } = useCredentials();
+  const { user } = useAuth();
 
   const verifyCredential = async () => {
     const credential = credentialCard.verifiableCredential;
     const result = await agent.verifyCredential({ credential });
-    alert("Credential verification result: " + JSON.stringify(result, null, 2));
-  };
 
-  const removeCredential = async () => {
-    await agent.dataStoreDeleteVerifiableCredential({
-      hash: credentialCard.hash,
-    });
-    alert("Credential removed");
+    console.log(result.verified);
+    const id = credentialCard.verifiableCredential.credentialSubject?.alias;
+
+    fetch(`http://${mediator.ip}:3000/did/${id}`, {
+      method: "GET",
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        const document = JSON.parse(data.Document);
+        let id;
+        if (typeof credentialCard.verifiableCredential.issuer === "string") {
+          id = credentialCard.verifiableCredential.issuer;
+        } else {
+          id = credentialCard.verifiableCredential.issuer.id;
+        }
+        console.log(document.did);
+        console.log(credentialCard.verifiableCredential.issuer);
+        if ((document.did === id) && result.verified) {
+          alert("Credential verified!");
+        } else {
+          alert("Credential not verified!");
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   };
 
   return (
@@ -53,14 +77,15 @@ const CredentialCard: React.FC<CredentialCardProps> = ({ credentialCard }) => {
           "No alias"}
       </Text>
       <Text>
-        Issued Date: {credentialCard.verifiableCredential.issuanceDate}
+        Description:{" "}
+        {credentialCard.verifiableCredential.credentialSubject?.data ??
+          "Default Data"}
       </Text>
       {isExpanded && (
         <View>
           <Text>
-            Description:{" "}
-            {credentialCard.verifiableCredential.credentialSubject?.data ??
-              "Default Data"}
+            {/* Issued Date: {JSON.parse(credentialCard.verifiableCredential.issuanceDate).toLocaleDateString()} */}
+            Issued Date: {credentialCard.verifiableCredential.issuanceDate}
           </Text>
           <Text style={styles.text}>
             Issuer:{" "}
@@ -76,7 +101,7 @@ const CredentialCard: React.FC<CredentialCardProps> = ({ credentialCard }) => {
           </Pressable>
           <Pressable
             style={styles.buttonRemove}
-            onPress={() => removeCredential()}
+            onPress={() => removeCredential(credentialCard.hash)}
           >
             <Text style={styles.buttonText}>Remove Credential</Text>
           </Pressable>
@@ -134,7 +159,6 @@ const styles = StyleSheet.create({
     backgroundColor: "red",
     marginTop: 10,
   },
-  // Additional styles as needed
 });
 
 export default CredentialCard;

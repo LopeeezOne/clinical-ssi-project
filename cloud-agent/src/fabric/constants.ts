@@ -1,11 +1,12 @@
 import * as path from 'path';
 
 export const channelName = envOrDefault('CHANNEL_NAME', 'mychannel');
-export const chaincodeName = envOrDefault('CHAINCODE_NAME', 'basic');
+export const chaincodeName = envOrDefault('CHAINCODE_NAME', 'did');
 export const mspId = envOrDefault('MSP_ID', 'Org1MSP');
 
 // Path to crypto and ca materials.
-export const cryptoPath = envOrDefault('CRYPTO_PATH', path.resolve('Users', 'antoniolopezmartinez', 'Documents', 'HyperledgerFabric', 'fabric-samples', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com'));
+// export const cryptoPath = envOrDefault('CRYPTO_PATH', path.resolve('Users', 'antoniolopezmartinez', 'Documents', 'HyperledgerFabric', 'fabric-samples', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com'));
+export const cryptoPath = envOrDefault('CRYPTO_PATH', path.resolve('..', '..', '..', 'HyperledgerFabric', 'fabric-samples', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com'));
 export const caCertPath = envOrDefault('CA_PATH', path.resolve('..', '..', 'HyperledgerFabric', 'fabric-samples', 'test-network', 'organizations', 'fabric-ca'));
 
 // Path to user private key directory.

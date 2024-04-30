@@ -35,6 +35,7 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ navigation }) => {
 
     if (draftConnection !== undefined) {
       draftConnection.did_received = scannedData.did;
+      console.log("Draft connection exists: ", JSON.stringify(draftConnection));
       await addConnection(draftConnection);
       alert("New connection established! " + data);
       

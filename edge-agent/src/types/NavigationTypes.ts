@@ -5,6 +5,7 @@ type MainStackParamList = {
     NewConnection: undefined;
     Utilities: undefined;
     SignUp: undefined;
+    Pin: undefined;
 };
 
 type TabStackParamList = {

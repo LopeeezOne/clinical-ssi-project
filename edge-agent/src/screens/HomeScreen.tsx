@@ -7,6 +7,7 @@ import { agent } from "../components/Agent";
 import { mediator } from "../constants/constants";
 import ForegroundTaskComponent from "../components/ForegroundTask";
 import { useConnections } from "../contexts/ConnectionsProvider";
+import { useCredentials } from "../contexts/CredentialsProvider";
 
 // Definir las props esperadas por HomeScreen
 interface HomeScreenProps {
@@ -23,6 +24,10 @@ type Styles = {
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
   const { user } = useAuth();
+  // const {removeCredentials} = useCredentials();
+  // removeCredentials();
+  // const { removeConnections} = useConnections();
+  // removeConnections();
   
   return (
     <ScrollView contentContainerStyle={styles.container}>

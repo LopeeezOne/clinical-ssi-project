@@ -58,9 +58,6 @@ const NewConnectionScreen: React.FC<ConnectionsScreenProps> = ({
       options: { num_algo: 2, service: service },
     });
 
-    // const didDocument = (await agent.resolveDid({didUrl: recipient.did})).didDocument;
-    // console.log("DID Document:", didDocument);
-
     // Request Mediation for this did created
     const request = createV3MediateRequestMessage(recipient.did, mediator.did);
     const packedRequest = await agent.packDIDCommMessage({
@@ -112,10 +109,9 @@ const NewConnectionScreen: React.FC<ConnectionsScreenProps> = ({
       connection_alias: alias,
       did_created: recipient.did,
       did_received: "",
-      createdAt: new Date(),
+      createdAt: new Date().toLocaleDateString(),
     });
   };
-  // const { user } = useAuth();
 
   // Function to generate QR code content
   const generateQRContent = async () => {
@@ -134,14 +130,6 @@ const NewConnectionScreen: React.FC<ConnectionsScreenProps> = ({
   const handleNewConnection = () => {
     navigation.navigate("Camera");
   };
-
-  // useEffect(() => {
-  //   if (isFocused) {
-  //     // Reset your state here
-  //     setAlias_1("");
-  //     setAlias_2("");
-  //   }
-  // }, [isFocused]);
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -198,53 +186,6 @@ const NewConnectionScreen: React.FC<ConnectionsScreenProps> = ({
       </ScrollView>
     </SafeAreaView>
   );
-
-  // return (
-  //   <SafeAreaView>
-  //     <ScrollView>
-  //       <View style={styles.container}>
-  //         <Text style={{ marginBottom: 7, fontSize: 25, fontWeight: "bold" }}>
-  //           Generate connection
-  //         </Text>
-  //         <TextInput
-  //           style={styles.input}
-  //           value={alias_1}
-  //           onChangeText={(text) => setAlias_1(text)}
-  //           placeholder="Enter en alias for the connection..."
-  //         />
-  //         <Button
-  //           title="Start New Connection"
-  //           onPress={() => generateQRContent(alias_1)}
-  //         />
-  //         {qrContent && (
-  //           <TouchableOpacity onPress={toggleModal}>
-  //             <View style={styles.qrCodeContainer}>
-  //               <QRCode value={qrContent} size={300} />
-  //             </View>
-  //           </TouchableOpacity>
-  //         )}
-  //         <Modal
-  //           animationType="slide"
-  //           transparent={true}
-  //           visible={isModalVisible}
-  //           onRequestClose={toggleModal}
-  //         >
-  //           <View style={styles.modalView}>
-  //             <Text style={styles.modalText}>QR Code Content:</Text>
-  //             <Text>{qrContent}</Text>
-  //             <Button title="Close" onPress={toggleModal} />
-  //           </View>
-  //         </Modal>
-  //         <View style={{marginTop: 20}}>
-  //           <Button
-  //             title="Scan New Connection"
-  //             onPress={() => handleNewConnection()}
-  //           />
-  //         </View>
-  //       </View>
-  //     </ScrollView>
-  //   </SafeAreaView>
-  // );
 };
 
 const styles = StyleSheet.create({

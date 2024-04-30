@@ -21,12 +21,11 @@ import {
 // Definición de los tipos para los estados
 interface SignUpState {
   username: string;
-  password: string;
-  repeatPassword: string;
+  pin: string;
+  repeatPin: string;
   role: string;
 }
 
-// Definir las props esperadas por HomeScreen
 interface SignUpScreenProps {
   navigation: NavigationProp<ParamListBase>;
 }
@@ -36,8 +35,8 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
 
   const [credentials, setCredentials] = useState<SignUpState>({
     username: "",
-    password: "",
-    repeatPassword: "",
+    pin: "",
+    repeatPin: "",
     role: "",
   });
 
@@ -46,15 +45,14 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
   const handleSignUp = async () => {
     if (
       credentials.username === "" ||
-      credentials.password === "" ||
-      credentials.repeatPassword === "" ||
+      credentials.pin === "" ||
+      credentials.repeatPin === "" ||
       credentials.role === ""
     ) {
       Alert.alert("ERROR", `The fields can not be empty`);
-    } else if (credentials.password !== credentials.repeatPassword) {
+    } else if (credentials.pin !== credentials.repeatPin) {
       Alert.alert("ERROR", `Passwords do not match`);
     } else {
-      Alert.alert("SignUp Attempt", `Successful SignUp!`);
       const service: IService = {
         id: "msg1",
         type: "DIDCommMessaging",
@@ -71,6 +69,7 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
         recipient.did,
         mediator.did
       );
+
       const packedRequest = await agent.packDIDCommMessage({
         packing: "anoncrypt",
         message: request,
@@ -80,6 +79,7 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
         recipientDidUrl: mediator.did,
         messageId: request.id,
       });
+
       if (
         mediationResponse.returnMessage?.type !==
         CoordinateMediation.MEDIATE_GRANT
@@ -87,13 +87,38 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
         throw new Error("mediation not granted");
       }
 
-      login(
-        credentials.username,
-        "success",
-        credentials.password,
-        credentials.role
-      );
-      navigation.navigate("Tabs");
+      fetch(`http://${mediator.ip}:3000/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: credentials.username,
+          pin: credentials.pin,
+          role: credentials.role,
+          did: recipient.did,
+        }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log(data);
+          if (data.status === "success") {
+            Alert.alert("SignUp Attempt", `Successful SignUp!`);
+            login(
+              credentials.username,
+              "success",
+              credentials.pin,
+              credentials.role
+            );
+            navigation.navigate("Tabs");
+          } else {
+            alert("Invalid PIN");
+          }
+        })
+        .catch((error) => {
+          // handle any errors
+          console.error(error);
+        });
     }
   };
 
@@ -118,20 +143,20 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
       />
       <TextInput
         style={styles.input}
-        placeholder="Password"
+        placeholder="PIN"
         secureTextEntry
-        value={credentials.password}
-        onChangeText={(text) =>
-          setCredentials({ ...credentials, password: text })
-        }
+        value={credentials.pin}
+        keyboardType="numeric"
+        onChangeText={(text) => setCredentials({ ...credentials, pin: text })}
       />
       <TextInput
         style={styles.input}
-        placeholder="Repeat password"
+        placeholder="Repeat PIN"
         secureTextEntry
-        value={credentials.repeatPassword}
+        value={credentials.repeatPin}
+        keyboardType="numeric"
         onChangeText={(text) =>
-          setCredentials({ ...credentials, repeatPassword: text })
+          setCredentials({ ...credentials, repeatPin: text })
         }
       />
       <Pressable style={styles.button} onPress={() => handleSignUp()}>

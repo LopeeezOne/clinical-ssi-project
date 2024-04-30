@@ -27,18 +27,15 @@ export const AuthProvider: FunctionComponent<AuthProviderProps> = ({ children })
 
   const login = (username: string, token: string, password: string, role: string) => {
     setUser({ token, username, password, role });
-    // Optionally, save the token and username in secure storage
   };
 
   const logout = () => {
     setUser({ token: null, username: "", password: null, role: null  });
-    // Optionally, clear the token and username from secure storage
   };
 
   return <AuthContext.Provider value={{ user, login, logout }}>{children}</AuthContext.Provider>;
 };
 
-// Hook for consuming context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {

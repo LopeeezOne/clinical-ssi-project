@@ -1,11 +1,11 @@
 import { NavigationProp, ParamListBase } from "@react-navigation/native";
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Button, TextInput } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Button, TextInput, Pressable } from "react-native";
 import { Connection } from "../model/Connection";
 import { agent } from "./Agent";
 import { useAuth } from "../contexts/AuthProvider";
-// import { format } from 'date-fns';
-// const readableFormat = format(date, "MMMM do, yyyy 'at' h:mm a");
+import { useConnections } from "../contexts/ConnectionsProvider";
+
 
 interface ConnectionCardProps {
   connection: Connection;
@@ -17,13 +17,16 @@ const ConnectionCard: React.FC<ConnectionCardProps> = ({ connection }) => {
   const [input, setInput] = useState("");
 
   const { user } = useAuth();
+  const { removeConnection } = useConnections();
 
   const createCredential = async () => {
     const sender = connection.did_created;
     const receiver = connection.did_received;
+    const issuer = await agent.didManagerFind({ alias: user.username });
+    console.log(issuer);
     const verifiableCredential = await agent.createVerifiableCredential({ // did:key / did:web / did:ethr / did:indy
       credential: {
-        issuer: { id: sender },
+        issuer: { id: issuer[0].did },
         '@context': ['https://www.w3.org/2018/credentials/v1'],
         issuanceDate: new Date().toISOString(),
         credentialSubject: {
@@ -55,6 +58,7 @@ const ConnectionCard: React.FC<ConnectionCardProps> = ({ connection }) => {
     });
 
     alert("Verifiable Credential Sent!");
+    setInput("");
   };
 
   return (
@@ -72,10 +76,18 @@ const ConnectionCard: React.FC<ConnectionCardProps> = ({ connection }) => {
           onChangeText={(text) => setInput(text)}
           placeholder="Enter text here..."
           />
-          <Button
-            title={"Create Credential"}
+          <Pressable
+            style={styles.buttonCreate}
             onPress={() => createCredential()}
-          />
+          >
+            <Text style={styles.buttonText}>Create Credential</Text>
+          </Pressable>
+          <Pressable
+            style={styles.buttonRemove}
+            onPress={() => removeConnection(connection)}
+          >
+            <Text style={styles.buttonText}>Remove Connection</Text>
+          </Pressable>
         </View>
       )}
     </TouchableOpacity>
@@ -109,7 +121,33 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     paddingHorizontal: 10,
   },
-  // Additional styles as needed
+  buttonText: {
+    fontSize: 17,
+    lineHeight: 21,
+    fontWeight: "bold",
+    letterSpacing: 0.25,
+    color: "white",
+  },
+  buttonCreate: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 30,
+    borderRadius: 10,
+    elevation: 3,
+    backgroundColor: "blue",
+    marginTop: 10,
+  },
+  buttonRemove: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 10,
+    elevation: 3,
+    backgroundColor: "red",
+    marginTop: 10,
+  },
 });
 
 export default ConnectionCard;

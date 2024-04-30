@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { AppState, AppStateStatus } from "react-native";
-import { useConnections } from "../contexts/ConnectionsProvider";
 import { mediator } from "../constants/constants";
 import {
   createV3DeliveryRequestMessage
@@ -9,6 +8,8 @@ import { agent } from "./Agent";
 import { Connection } from "../model/Connection";
 import { NavigationProp, ParamListBase } from "@react-navigation/native";
 import { VerifiableCredential } from "@veramo/core";
+import { useCredentials } from "../contexts/CredentialsProvider";
+import { useConnections } from "../contexts/ConnectionsProvider";
 
 interface ForegroundTaskScreenProps {
   navigation: NavigationProp<ParamListBase>;
@@ -22,6 +23,7 @@ const ForegroundTaskComponent: React.FC<ForegroundTaskScreenProps> = ({
   );
   const { connections, draftConnection, addDraftConnection, addConnection } =
     useConnections();
+  const { addCredential } = useCredentials();
   let counter = 0;
 
   const checkNewMessages = async (connection: Connection) => {
@@ -50,8 +52,10 @@ const ForegroundTaskComponent: React.FC<ForegroundTaskScreenProps> = ({
       // Case of establishing a new connection
       if (msg.id === "invitation-request") {
         if (connection.did_received === "") {
-          connection.did_received = JSON.stringify(msg.from);
-          addConnection(connection);
+          console.log("Message from:", msg.from);
+          connection.did_received = msg.from as string;
+          console.log("I'm the QR Code creator: Connection established with:", JSON.stringify(connection));
+          await addConnection(connection);
           addDraftConnection(undefined); 
 
           const message = {
@@ -86,8 +90,8 @@ const ForegroundTaskComponent: React.FC<ForegroundTaskScreenProps> = ({
       if (msg.type === "https://didcomm.org/issue-credential") {
         const verifiableCredential : VerifiableCredential = msg.data as VerifiableCredential;
         try {
-          // console.log("Verifiable Credential: ", verifiableCredential);
-          agent.dataStoreSaveVerifiableCredential({verifiableCredential});//JSON.parse(credential));
+          agent.dataStoreSaveVerifiableCredential({verifiableCredential});
+          addCredential();
         } catch (error) {
           console.log(error);
         }
@@ -113,8 +117,6 @@ const ForegroundTaskComponent: React.FC<ForegroundTaskScreenProps> = ({
           recipientDidUrl: mediator.did,
           messageId: message.id,
         });
-
-        // console.log("Message messages-received sent:", messagesReceived);
       }
     }
   };
