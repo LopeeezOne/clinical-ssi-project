@@ -11,7 +11,7 @@ const utf8Decoder = new TextDecoder();
 // I want use the function receiveContract() in the index.ts file
 export async function receiveContract(user: string): Promise<Contract | undefined> {
 
-    await displayInputParameters(user);
+    //await displayInputParameters(user);
 
     // The gRPC client connection should be shared by all Gateway connections to this endpoint.
     const client = await newGrpcConnection();

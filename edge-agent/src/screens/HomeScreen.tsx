@@ -19,6 +19,7 @@ type Styles = {
   welcomeText: any;
   section: any;
   sectionHeader: any;
+  textParagraph: any;
 };
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
@@ -43,8 +44,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       {/* Updates and Alerts */}
       <View style={styles.section}>
         <Text style={styles.sectionHeader}>Connections tab</Text>
-        <Text>- In this tab, you can see your current connections created and establish a new one.</Text>
-        <Text>
+        <Text style={styles.textParagraph}>- In this tab, you can see your current connections created and establish a new one.</Text>
+        <Text style={styles.textParagraph}>
           - Please, you need to indicate a unique alias for new connections. Connections are established using the alias.
         </Text>
       </View>
@@ -52,8 +53,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       {/* Educational Content and Health Tips */}
       <View style={styles.section}>
         <Text style={styles.sectionHeader}>Credentials tab</Text>
-        <Text>- In credential tab, you can manage your credentials received or sent.</Text>
-        <Text>- Depending on if you are the credential's owner or receiver, you can revoke or verify the credential.</Text>
+        <Text style={styles.textParagraph}>- In credential tab, you can manage your credentials received or sent.</Text>
+        <Text style={styles.textParagraph}>- Besides, you can verify the different credentials.</Text>
       </View>
     </ScrollView>
   );
@@ -65,7 +66,7 @@ const styles = StyleSheet.create<Styles>({
     padding: 20,
   },
   welcomeText: {
-    fontSize: 20,
+    fontSize: 25,
     fontWeight: 'bold' as 'bold',
     marginBottom: 20,
   },
@@ -73,8 +74,16 @@ const styles = StyleSheet.create<Styles>({
     marginTop: 20,
   },
   sectionHeader: {
-    fontSize: 16,
+    fontSize: 23,
     fontWeight: '600' as '600',
+    marginBottom: 10,
+  },
+  textParagraph: {
+    fontSize: 14,
+    // select the arial font
+    // this does not work on expo 
+    // justify the text in the paragraph
+    textAlign: 'justify' as 'justify',
     marginBottom: 10,
   },
 });

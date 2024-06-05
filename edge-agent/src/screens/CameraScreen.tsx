@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Text, View, StyleSheet, Button } from "react-native";
 import { Camera } from "expo-camera";
-import { CameraView } from "expo-camera/next";
+import { CameraView } from "expo-camera";
 import { useConnections } from "../contexts/ConnectionsProvider";
 import { NavigationProp, ParamListBase } from "@react-navigation/native";
 import { agent } from "../components/Agent";

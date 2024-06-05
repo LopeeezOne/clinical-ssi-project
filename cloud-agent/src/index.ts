@@ -23,7 +23,7 @@ const mediatorIdentifier = await agent.didManagerCreate({
         service: {
             id: '#messaging1',
             type: 'DIDCommMessaging',
-            serviceEndpoint: `http://155.54.98.157:${port}/messaging`,
+            serviceEndpoint: `http://192.168.221.162:${port}/messaging`,
         },
     },
 })
@@ -44,7 +44,7 @@ app.use(
 app.post('/auth', express.json(), (req, res) => {
     // Assuming the client sends JSON data
     const clientData = req.body;
-    console.log('Received data from client:', clientData);
+    console.log('Received data from client:', clientData.alias);
 
     // Process the data here (e.g., validate, store in a database, etc.)
     // Check if the username appears in the folder of org1.example.com
@@ -84,7 +84,7 @@ app.post('/auth', express.json(), (req, res) => {
 app.post('/register', express.json(), async (req, res) => {
     // Assuming the client sends JSON data
     const clientData = req.body;
-    console.log('Received registration from client:', clientData);
+    console.log('Received registration from client:', clientData.username);
 
     // Process the data here (e.g., validate, store in a database, etc.)
     // Check if the username appears in the folder of org1.example.com
@@ -103,7 +103,7 @@ app.post('/register', express.json(), async (req, res) => {
 
     if (contract !== undefined) {
     const createdDid = await createDid(contract, username, JSON.stringify({ username, did }));
-    console.log('Created DID:', createdDid);
+    //console.log('Created DID:', createdDid);
     } else {
         throw new Error("Failed to obtain contract");
     }
