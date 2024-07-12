@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Text, View, StyleSheet, Button } from "react-native";
+import { Text, View, StyleSheet, Button, ImageBackground } from "react-native";
 import { Camera } from "expo-camera";
 import { CameraView } from "expo-camera";
 import { useConnections } from "../contexts/ConnectionsProvider";
 import { NavigationProp, ParamListBase } from "@react-navigation/native";
 import { agent } from "../components/Agent";
+
+// Replace this with the correct path to your image
+const backgroundImage = require('../../assets/background.jpg'); // Ensure this path is correct
 
 interface CameraScreenProps {
   navigation: NavigationProp<ParamListBase>;
@@ -64,25 +67,30 @@ const CameraScreen: React.FC<CameraScreenProps> = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Scan a new connection!</Text>
-      <View style={styles.cameraContainer}>
-        <CameraView
-        onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
-        barcodeScannerSettings={{
-          barcodeTypes: ["qr", "pdf417"],
-        }}
-        style={styles.camera}
-      />
+    <ImageBackground source={backgroundImage} style={styles.background} resizeMode="cover">
+      <View style={styles.container}>
+        <Text style={styles.title}>Scan a new connection!</Text>
+        <View style={styles.cameraContainer}>
+          <CameraView
+            onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
+            barcodeScannerSettings={{
+              barcodeTypes: ["qr", "pdf417"],
+            }}
+            style={styles.camera}
+          />
+        </View>
+        {scanned && (
+          <Button title={"Tap to Scan Again"} onPress={() => setScanned(false)} />
+        )}
       </View>
-      {scanned && (
-        <Button title={"Tap to Scan Again"} onPress={() => setScanned(false)} />
-      )}
-    </View>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     flexDirection: "column",

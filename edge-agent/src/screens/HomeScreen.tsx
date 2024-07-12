@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Text, View, ScrollView, StyleSheet } from "react-native";
+import { Button, Text, View, ScrollView, StyleSheet, ImageBackground } from "react-native";
 import { NavigationProp, ParamListBase } from "@react-navigation/native";
 import { useAuth } from "../contexts/AuthProvider";
 import { IIdentifier, IService, IVerifyResult, VerifiableCredential } from "@veramo/core";
@@ -9,18 +9,13 @@ import ForegroundTaskComponent from "../components/ForegroundTask";
 import { useConnections } from "../contexts/ConnectionsProvider";
 import { useCredentials } from "../contexts/CredentialsProvider";
 
+// Replace this with the correct path to your image
+const backgroundImage = require('../../assets/background.jpg'); // Ensure this path is correct
+
 // Definir las props esperadas por HomeScreen
 interface HomeScreenProps {
   navigation: NavigationProp<ParamListBase>;
 }
-
-type Styles = {
-  container: any;
-  welcomeText: any;
-  section: any;
-  sectionHeader: any;
-  textParagraph: any;
-};
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
@@ -31,39 +26,45 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   // removeConnections();
   
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* Welcome and Summary Section */}
-      <View style={styles.section}>
-        <ForegroundTaskComponent navigation={navigation} />
-        <Text style={styles.welcomeText}>Welcome, {user.username}!</Text>
-        <Text>
-          This is the app to manage your clinical data.
-        </Text>
-      </View>
+    <ImageBackground source={backgroundImage} style={styles.background} resizeMode="cover">
+      <ScrollView contentContainerStyle={styles.container}>
+        {/* Welcome and Summary Section */}
+        <View style={styles.section}>
+          <ForegroundTaskComponent navigation={navigation} />
+          <Text style={styles.welcomeText}>Welcome, {user.username}!</Text>
+          <Text>
+            This is the app to manage your clinical data.
+          </Text>
+        </View>
 
-      {/* Updates and Alerts */}
-      <View style={styles.section}>
-        <Text style={styles.sectionHeader}>Connections tab</Text>
-        <Text style={styles.textParagraph}>- In this tab, you can see your current connections created and establish a new one.</Text>
-        <Text style={styles.textParagraph}>
-          - Please, you need to indicate a unique alias for new connections. Connections are established using the alias.
-        </Text>
-      </View>
+        {/* Updates and Alerts */}
+        <View style={styles.section}>
+          <Text style={styles.sectionHeader}>Connections tab</Text>
+          <Text style={styles.textParagraph}>- In this tab, you can see your current connections created and establish a new one.</Text>
+          <Text style={styles.textParagraph}>
+            - Please, you need to indicate a unique alias for new connections. Connections are established using the alias.
+          </Text>
+        </View>
 
-      {/* Educational Content and Health Tips */}
-      <View style={styles.section}>
-        <Text style={styles.sectionHeader}>Credentials tab</Text>
-        <Text style={styles.textParagraph}>- In credential tab, you can manage your credentials received or sent.</Text>
-        <Text style={styles.textParagraph}>- Besides, you can verify the different credentials.</Text>
-      </View>
-    </ScrollView>
+        {/* Educational Content and Health Tips */}
+        <View style={styles.section}>
+          <Text style={styles.sectionHeader}>Credentials tab</Text>
+          <Text style={styles.textParagraph}>- In credential tab, you can manage your credentials received or sent.</Text>
+          <Text style={styles.textParagraph}>- Besides, you can verify the different credentials.</Text>
+        </View>
+      </ScrollView>
+    </ImageBackground>
   );
 };
 
 // Define styles with TypeScript type
-const styles = StyleSheet.create<Styles>({
+const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+  },
   container: {
     padding: 20,
+    paddingTop: 40,
   },
   welcomeText: {
     fontSize: 25,
@@ -80,13 +81,9 @@ const styles = StyleSheet.create<Styles>({
   },
   textParagraph: {
     fontSize: 14,
-    // select the arial font
-    // this does not work on expo 
-    // justify the text in the paragraph
     textAlign: 'justify' as 'justify',
     marginBottom: 10,
   },
 });
 
 export default HomeScreen;
-  

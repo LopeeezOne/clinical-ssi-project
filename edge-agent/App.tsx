@@ -6,23 +6,23 @@ import "cross-fetch/polyfill";
 // ... shims
 
 import * as React from "react";
+import { StyleSheet, ImageBackground, View } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import MainStackNavigator from "./src/navigation/MainStackNavigator";
 import { AuthProvider } from "./src/contexts/AuthProvider";
 import { ConnectionProvider } from "./src/contexts/ConnectionsProvider";
-import ForegroundTaskComponent from "./src/components/ForegroundTask";
 import { CredentialProvider } from "./src/contexts/CredentialsProvider";
 
 export default function App() {
   return (
-    <ConnectionProvider>
-      <AuthProvider>
-        <CredentialProvider>
-          <NavigationContainer>
-            <MainStackNavigator />
-          </NavigationContainer>
-        </CredentialProvider>
-      </AuthProvider>
-    </ConnectionProvider>
+      <ConnectionProvider>
+        <AuthProvider>
+          <CredentialProvider>
+            <NavigationContainer>
+              <MainStackNavigator />
+            </NavigationContainer>
+          </CredentialProvider>
+        </AuthProvider>
+      </ConnectionProvider>
   );
 }

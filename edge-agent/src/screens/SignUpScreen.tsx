@@ -9,7 +9,8 @@ import {
   Pressable,
   KeyboardAvoidingView,
   ScrollView,
-  Platform
+  Platform,
+  ImageBackground,
 } from "react-native";
 import { NavigationProp, ParamListBase } from "@react-navigation/native";
 import RNPickerSelect from "react-native-picker-select";
@@ -21,6 +22,9 @@ import {
   CoordinateMediation,
   createV3MediateRequestMessage,
 } from "@veramo/did-comm";
+
+// Replace this with the correct path to your image
+const backgroundImage = require('../../assets/background.jpg'); // Ensure this path is correct
 
 // Definición de los tipos para los estados
 interface SignUpState {
@@ -127,64 +131,69 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <ScrollView contentContainerStyle={styles.container}>
-        <Image
-          source={{
-            uri: "https://cdn-icons-png.flaticon.com/512/3004/3004458.png",
-          }}
-          style={styles.image}
-        />
-        <Text style={styles.title}>ClinicalSync</Text>
+    <ImageBackground source={backgroundImage} style={styles.background} resizeMode="cover">
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <ScrollView contentContainerStyle={styles.container}>
+          <Image
+            source={{
+              uri: "https://cdn-icons-png.flaticon.com/512/3004/3004458.png",
+            }}
+            style={styles.image}
+          />
+          <Text style={styles.title}>ClinicalSync</Text>
 
-        <RNPickerSelect
-          value={credentials.role}
-          onValueChange={(role) => setCredentials({ ...credentials, role: role })}
-          items={[
-            { label: "Patient", value: "patient" },
-            { label: "Doctor", value: "doctor" },
-            { label: "Laboratory", value: "laboratory" },
-          ]}
-          style={pickerSelectStyles}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Username"
-          value={credentials.username}
-          onChangeText={(text) =>
-            setCredentials({ ...credentials, username: text })
-          }
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="PIN"
-          secureTextEntry
-          value={credentials.pin}
-          keyboardType="numeric"
-          onChangeText={(text) => setCredentials({ ...credentials, pin: text })}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Repeat PIN"
-          secureTextEntry
-          value={credentials.repeatPin}
-          keyboardType="numeric"
-          onChangeText={(text) =>
-            setCredentials({ ...credentials, repeatPin: text })
-          }
-        />
-        <Pressable style={styles.button} onPress={() => handleSignUp()}>
-          <Text style={styles.text}>Sign up</Text>
-        </Pressable>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          <RNPickerSelect
+            value={credentials.role}
+            onValueChange={(role) => setCredentials({ ...credentials, role: role })}
+            items={[
+              { label: "Patient", value: "patient" },
+              { label: "Doctor", value: "doctor" },
+              { label: "Laboratory", value: "laboratory" },
+            ]}
+            style={pickerSelectStyles}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Username"
+            value={credentials.username}
+            onChangeText={(text) =>
+              setCredentials({ ...credentials, username: text })
+            }
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="PIN"
+            secureTextEntry
+            value={credentials.pin}
+            keyboardType="numeric"
+            onChangeText={(text) => setCredentials({ ...credentials, pin: text })}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Repeat PIN"
+            secureTextEntry
+            value={credentials.repeatPin}
+            keyboardType="numeric"
+            onChangeText={(text) =>
+              setCredentials({ ...credentials, repeatPin: text })
+            }
+          />
+          <Pressable style={styles.button} onPress={() => handleSignUp()}>
+            <Text style={styles.text}>Sign up</Text>
+          </Pressable>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+  },
   container: {
     flexGrow: 1,
     justifyContent: "center",

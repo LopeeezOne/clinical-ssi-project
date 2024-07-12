@@ -8,6 +8,12 @@ type MainStackParamList = {
     Pin: undefined;
 };
 
+type ConnectionsStackParamList = {
+    Camera: undefined;
+    NewConnection: undefined;
+    ConnectionList: undefined;
+};
+
 type TabStackParamList = {
     Home: undefined;
     Credentials: undefined;

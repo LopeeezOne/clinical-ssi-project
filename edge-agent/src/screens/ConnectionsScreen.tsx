@@ -6,10 +6,14 @@ import {
   Text,
   TouchableOpacity,
   FlatList,
+  ImageBackground,
 } from "react-native";
 import { NavigationProp, ParamListBase } from "@react-navigation/native";
 import ConnectionCard from "../components/ConnectionCard";
 import { useConnections } from "../contexts/ConnectionsProvider";
+
+// Replace this with the correct path to your image
+const backgroundImage = require('../../assets/background.jpg'); // Ensure this path is correct
 
 interface ConnectionsScreenProps {
   navigation: NavigationProp<ParamListBase>;
@@ -19,7 +23,7 @@ const ConnectionsScreen: React.FC<ConnectionsScreenProps> = ({
   navigation,
 }) => {
   const { connections, retrieveConnections } = useConnections();
-  
+
   const handleNewConnection = () => {
     navigation.navigate("NewConnection");
   };
@@ -28,40 +32,62 @@ const ConnectionsScreen: React.FC<ConnectionsScreenProps> = ({
     retrieveConnections(); // Fetch connections when the component mounts
   }, [retrieveConnections]);
 
+  useEffect(() => {
+    console.log("Connections:", connections);
+  }, [connections]);
+
   return (
-    <View style={styles.outerContainer}>
-      {/* Outer container for positioning the floating button */}
-      <SafeAreaView style={{ flex: 1 }}>
-        <View style={styles.container}>
-          <FlatList
-            data={connections}
-            keyExtractor={(item) => item.connection_alias}
-            renderItem={({ item }) => (
-              <ConnectionCard connection={item} navigation={navigation} />
+    <ImageBackground source={backgroundImage} style={styles.background} resizeMode="cover">
+      <View style={styles.outerContainer}>
+        <SafeAreaView style={{ flex: 1 }}>
+          <View style={styles.container}>
+            {connections !== null && connections.length > 0 ? (
+              <FlatList
+                data={connections}
+                keyExtractor={(item) => item.connection_alias}
+                renderItem={({ item }) => (
+                  <ConnectionCard connection={item} navigation={navigation} />
+                )}
+              />
+            ) : (
+              <View style={styles.noConnectionsContainer}>
+                <Text style={styles.noConnectionsText}>No connections started</Text>
+              </View>
             )}
-          />
-        </View>
-      </SafeAreaView>
-      <TouchableOpacity
-        onPress={() => handleNewConnection()}
-        style={styles.floatingButton}
-      >
-        <Text style={styles.buttonText}>+</Text>
-      </TouchableOpacity>
-    </View>
+          </View>
+        </SafeAreaView>
+        <TouchableOpacity
+          onPress={() => handleNewConnection()}
+          style={styles.floatingButton}
+        >
+          <Text style={styles.buttonText}>+</Text>
+        </TouchableOpacity>
+      </View>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+  },
   outerContainer: {
     flex: 1, // Ensure this container fills the screen
   },
   container: {
     flex: 1,
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "center",
     padding: 20,
+    paddingTop: 40,
+  },
+  noConnectionsContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  noConnectionsText: {
+    fontSize: 22,
+    textAlign: 'center',
+    color: 'gray',
   },
   floatingButton: {
     backgroundColor: "tomato", // Use your desired color

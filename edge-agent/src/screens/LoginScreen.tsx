@@ -9,10 +9,14 @@ import {
   Text,
   KeyboardAvoidingView,
   Platform,
-  ScrollView
+  ScrollView,
+  ImageBackground,
 } from "react-native";
 import { mediator } from "../constants/constants";
 import { useAuth } from "../contexts/AuthProvider";
+
+// Replace this with the correct path to your image
+const backgroundImage = require('../../assets/background.jpg'); // Ensure this path is correct
 
 interface LoginScreenProps {
   navigation: NavigationProp<ParamListBase>;
@@ -49,50 +53,55 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <ScrollView contentContainerStyle={styles.container}>
-        <Image
-          source={{
-            uri: "https://cdn-icons-png.flaticon.com/512/3004/3004458.png",
-          }}
-          style={styles.image}
-        />
-        <Text style={styles.title}>ClinicalSync</Text>
+    <ImageBackground source={backgroundImage} style={styles.background} resizeMode="cover">
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <ScrollView contentContainerStyle={styles.container}>
+          <Image
+            source={{
+              uri: "https://cdn-icons-png.flaticon.com/512/3004/3004458.png",
+            }}
+            style={styles.image}
+          />
+          <Text style={styles.title}>ClinicalSync</Text>
 
-        <TextInput
-          style={styles.input}
-          onChangeText={setAlias}
-          value={alias}
-          placeholder="Enter your Alias"
-        />
-        <TextInput
-          style={styles.input}
-          onChangeText={setPin}
-          value={pin}
-          placeholder="Enter your PIN"
-          keyboardType="numeric"
-          secureTextEntry
-        />
-        <Pressable style={styles.button} onPress={handleLogin}>
-          <Text style={styles.text}>Login</Text>
-        </Pressable>
+          <TextInput
+            style={styles.input}
+            onChangeText={setAlias}
+            value={alias}
+            placeholder="Enter your Alias"
+          />
+          <TextInput
+            style={styles.input}
+            onChangeText={setPin}
+            value={pin}
+            placeholder="Enter your PIN"
+            keyboardType="numeric"
+            secureTextEntry
+          />
+          <Pressable style={styles.button} onPress={handleLogin}>
+            <Text style={styles.text}>Login</Text>
+          </Pressable>
 
-        <Text style={styles.textSignUp}>Don't have an account?</Text>
-        <Pressable
-          style={styles.buttonSignUp}
-          onPress={() => navigation.navigate("SignUp")}
-        >
-          <Text style={styles.text}>Sign up</Text>
-        </Pressable>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          <Text style={styles.textSignUp}>Don't have an account?</Text>
+          <Pressable
+            style={styles.buttonSignUp}
+            onPress={() => navigation.navigate("SignUp")}
+          >
+            <Text style={styles.text}>Sign up</Text>
+          </Pressable>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+  },
   container: {
     flexGrow: 1,
     justifyContent: "center",
@@ -126,7 +135,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     borderRadius: 10,
     elevation: 3,
-    backgroundColor: "blue",
+    backgroundColor: "tomato",
     width: '100%',
     marginBottom: 20,
   },
@@ -152,7 +161,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     borderRadius: 10,
     elevation: 3,
-    backgroundColor: "red",
+    backgroundColor: "blue",
     marginTop: 10,
     width: '100%',
   },

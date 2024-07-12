@@ -23,7 +23,7 @@ const mediatorIdentifier = await agent.didManagerCreate({
         service: {
             id: '#messaging1',
             type: 'DIDCommMessaging',
-            serviceEndpoint: `http://192.168.221.162:${port}/messaging`,
+            serviceEndpoint: `http://155.54.98.157:${port}/messaging`,
         },
     },
 })

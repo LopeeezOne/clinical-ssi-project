@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Modal,
   TextInput,
+  ImageBackground,
 } from "react-native";
 import { NavigationProp, ParamListBase } from "@react-navigation/native";
 import { agent } from "../components/Agent";
@@ -22,6 +23,9 @@ import {
 } from "@veramo/did-comm";
 import { mediator } from "../constants/constants";
 import { useConnections } from "../contexts/ConnectionsProvider";
+
+// Replace this with the correct path to your image
+const backgroundImage = require('../../assets/background.jpg'); // Ensure this path is correct
 
 interface ConnectionsScreenProps {
   navigation: NavigationProp<ParamListBase>;
@@ -118,7 +122,7 @@ const NewConnectionScreen: React.FC<ConnectionsScreenProps> = ({
     const content = {
       did: did,
     };
-    
+
     // Update state with the new QR code content
     setQrContent(JSON.stringify(content));
   };
@@ -132,63 +136,68 @@ const NewConnectionScreen: React.FC<ConnectionsScreenProps> = ({
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        <View style={styles.container}>
-          {!didCreated ? (
-            <>
-              <Text
-                style={{ marginBottom: 7, fontSize: 25, fontWeight: "bold" }}
-              >
-                Create DID
-              </Text>
-              <TextInput
-                style={styles.input}
-                value={alias}
-                onChangeText={setAlias}
-                placeholder="Enter an alias for the connection..."
-              />
-              <Button title="Create DID" onPress={handleCreateDID} />
-            </>
-          ) : (
-            <>
-              <Button
-                title="Start New Connection"
-                onPress={() => generateQRContent()}
-              />
-              {qrContent && (
-                <TouchableOpacity onPress={toggleModal}>
-                  <View style={styles.qrCodeContainer}>
-                    <QRCode value={qrContent} size={300} />
+    <ImageBackground source={backgroundImage} style={styles.background} resizeMode="cover">
+      <SafeAreaView style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+          <View style={styles.container}>
+            {!didCreated ? (
+              <>
+                <Text
+                  style={{ marginBottom: 7, fontSize: 25, fontWeight: "bold" }}
+                >
+                  Create DID
+                </Text>
+                <TextInput
+                  style={styles.input}
+                  value={alias}
+                  onChangeText={setAlias}
+                  placeholder="Enter an alias for the connection..."
+                />
+                <Button title="Create DID" onPress={handleCreateDID} />
+              </>
+            ) : (
+              <>
+                <Button
+                  title="Start New Connection"
+                  onPress={() => generateQRContent()}
+                />
+                {qrContent && (
+                  <TouchableOpacity onPress={toggleModal}>
+                    <View style={styles.qrCodeContainer}>
+                      <QRCode value={qrContent} size={300} />
+                    </View>
+                  </TouchableOpacity>
+                )}
+                <Modal
+                  animationType="slide"
+                  transparent={true}
+                  visible={isModalVisible}
+                  onRequestClose={toggleModal}
+                >
+                  <View style={styles.modalView}>
+                    <Text style={styles.modalText}>QR Code Content:</Text>
+                    <Text>{qrContent}</Text>
+                    <Button title="Close" onPress={toggleModal} />
                   </View>
-                </TouchableOpacity>
-              )}
-              <Modal
-                animationType="slide"
-                transparent={true}
-                visible={isModalVisible}
-                onRequestClose={toggleModal}
-              >
-                <View style={styles.modalView}>
-                  <Text style={styles.modalText}>QR Code Content:</Text>
-                  <Text>{qrContent}</Text>
-                  <Button title="Close" onPress={toggleModal} />
-                </View>
-              </Modal>
-              <View style={{marginTop: 20}}></View>
-              <Button
-                title="Scan New Connection"
-                onPress={handleNewConnection}
-              />
-            </>
-          )}
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+                </Modal>
+                <View style={{ marginTop: 20 }}></View>
+                <Button
+                  title="Scan New Connection"
+                  onPress={handleNewConnection}
+                />
+              </>
+            )}
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     flexDirection: "column",
